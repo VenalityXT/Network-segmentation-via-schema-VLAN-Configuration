@@ -45,116 +45,188 @@ The environment contains:
 ## 2. Router Initial Configuration (S2)
 
 Upon opening the router, Packet Tracer displays the **System Configuration Dialog**.  
-We intentionally selected **“no”** so that we could build the configuration manually.
+We intentionally selected **“no”** so that we could build the configuration manually. This allows full granular control of every interface, service, and protocol — matching what real network engineers do.
 
 <img width="702" height="712" alt="S2" src="https://github.com/user-attachments/assets/a272acdd-4ba3-4baa-9d69-837850ebb2d6" />
 
-We entered privileged **EXEC** mode using:
+We entered privileged **EXEC** mode using the command:
 
-- **`enable`** → Grants access to advanced commands  
-- **`configure terminal`** → Enters global configuration mode  
+- **`enable`**  
+  - Moves from *user EXEC* (`Router>`) to *privileged EXEC* (`Router#`)  
+  - Required for viewing system-level information and entering configuration mode  
+  - No parameters
 
-The physical interface `Gig0/0/0` was initially configured with `192.168.1.1`.  
-Although this brought the interface up, it did **not** match our intended network (`192.168.10.0/24`), which would later cause the first ping failure.
+Next, we entered global configuration mode:
+
+- **`configure terminal`**  
+  - Abbreviated as `conf t`  
+  - Allows applying all system-wide and interface-specific changes  
+  - No parameters
+
+We then configured the physical interface:
+
+- **`interface gigabitEthernet0/0/0`**  
+  - Opens the configuration context for that specific interface  
+  - Interface IDs follow: `type slot/port/subport`
+
+Inside the interface we used:
+
+- **`ip address <address> <mask>`**  
+  Assigns an IP address to the interface. Example:  
+  `ip address 192.168.1.1 255.255.255.0`
+
+- **`no shutdown`**  
+  - Brings the interface up  
+  - All Cisco interfaces default to *administratively down*
+
+Although this activated the interface, the IP (`192.168.1.1`) did **not** match our intended VLAN 10 design — which ultimately contributed to the ping failure observed later.
 
 ---
 
 ## 3. DHCP Configuration (S3)
 
-With the router online, we configured DHCP exclusions and created a dedicated pool for VLAN 10.
+With the router active, we configured DHCP exclusions and created a dedicated DHCP pool.
 
 <img width="702" height="712" alt="S3" src="https://github.com/user-attachments/assets/bb0eca13-c95c-4a8b-92b4-7f913e978cfa" />
 
-We excluded `.1` (the gateway) and `.10` (reserved), defined the network, and then verified bindings. The first verification attempt failed because the command was run inside configuration mode; an IOS nuance that provided a helpful reminder:
+### Commands Introduced Here
 
-> **Execution commands only run from privileged EXEC mode (`Router#`).**
+- **`ip dhcp excluded-address <start> <end>`**  
+  Prevents DHCP from assigning addresses in a reserved range.  
+  We used:  
+  - `ip dhcp excluded-address 192.168.10.1`  
+  - `ip dhcp excluded-address 192.168.10.10`  
 
-Once in the correct mode, DHCP bindings displayed properly.
+- **`ip dhcp pool <name>`**  
+  Creates a DHCP pool and enters DHCP configuration mode.  
+  We named ours `VLAN10_Pool`.
+
+Inside the DHCP pool:
+
+- **`network <ip> <mask>`**  
+  Defines the subnet the pool will use.
+
+- **`default-router <ip>`**  
+  Sets the gateway handed out to clients — must match router-on-a-stick subinterface.
+
+- **`dns-server <ip>`**  
+  Provides a DNS server address to DHCP clients.
+
+After configuration we verified bindings using:
+
+- **`show ip dhcp binding`**  
+  - EXEC-level command  
+  - Displays active DHCP leases  
+  - Failed at first because it was incorrectly run in config mode
 
 ---
 
 ## 4. VLAN Creation & Port Assignment (S4)
 
-Next, we configured the switch to support segmented Layer 2 boundaries.
+Next, we configured the Layer 2 switch.
 
 <img width="702" height="712" alt="S4" src="https://github.com/user-attachments/assets/c35f99c2-5b3a-4478-bee2-05d7dc77b86d" />
 
-We created two VLANs:
+### Commands Introduced Here
 
-- **VLAN 10 → Marketing**  
-- **VLAN 20 → HR**
+- **`vlan <id>`**  
+  Creates (or opens) a VLAN configuration context.  
+  We created:  
+  - `vlan 10` → named *Marketing*  
+  - `vlan 20` → named *HR*
 
-Port assignments:
+- **`interface fastEthernet0/2`**  
+  Enters the interface to assign it to a VLAN.
 
-- `Fa0/2` → Access port for VLAN 10  
-- `Fa0/1` → Uplink toward the router  
+Inside the interface:
 
-At this stage the switch’s VLAN database and port assignments were correct, but trunking and the router subinterface had not yet been configured.
+- **`switchport mode access`**  
+  Forces the port into access mode.
+
+- **`switchport access vlan <id>`**  
+  Assigns the VLAN to the interface (untagged).
+
+At this point the VLANs were created and the PC was assigned to VLAN 10, but trunking and subinterfaces were not yet configured — so routing still could not occur.
 
 ---
 
 ## 5. L2 Verification (S5.1, S5.2, S5.3)
 
-Before testing connectivity, we verified the switch’s operational state through three key commands.
+Before testing connectivity, we verified Layer 2 status.
 
 ### **Switch Interface Summary (S5.1)**  
 <img width="702" height="712" alt="S5 1_Results" src="https://github.com/user-attachments/assets/366fbc36-eaa0-4ec5-993c-5e0ff537c04b" />
 
-`Fa0/1` and `Fa0/2` are up, confirming clean physical connectivity.
+`show ip interface brief` confirmed the physical links were up.
 
 ### **VLAN Table (S5.2)**  
 <img width="702" height="712" alt="S5 2_Results" src="https://github.com/user-attachments/assets/0ee564ff-409f-476a-8507-14c423e9d33c" />
 
-VLAN 10 correctly lists `Fa0/2`.
+`show vlan brief` showed VLAN 10 correctly mapped to `Fa0/2`.
 
 ### **Trunk Capability (S5.3)**  
 <img width="702" height="712" alt="S5 3_Results" src="https://github.com/user-attachments/assets/595de571-e9a9-4c02-ae23-e35a7f591a10" />
 
-`Fa0/1` is ready to become a trunk but is not fully configured yet.
+`show interfaces trunk` confirmed that `Fa0/1` was able to operate as a trunk, but still needed configuration.
 
 ---
 
 ## 6. First Connectivity Test – Ping Failure (S6)
 
-With everything appearing correct electrically, we attempted a ping to the router.  
-The PC could not reach `192.168.1.1`.
+We attempted to ping the router.
 
 <img width="702" height="712" alt="S6" src="https://github.com/user-attachments/assets/0187f75c-d972-45a4-bd2b-62ece95726a7" />
 
-This was the moment we realized there was a mismatch between:
+The PC failed to reach `192.168.1.1`, which made sense once we realized:
 
-- the router’s configured IP (`192.168.1.1`)  
-- the DHCP scope (`192.168.10.x`)  
-- the VLAN design (VLAN 10 should use `192.168.10.1`)  
+- The DHCP pool was for **192.168.10.0/24**  
+- The router’s interface was on **192.168.1.0/24**  
+- VLAN 10’s gateway **should be 192.168.10.1**
 
-This inconsistency guided the next steps in troubleshooting.
+This mismatch pointed directly to the missing router subinterface.
 
 ---
 
 ## 7. Creating the Router-on-a-Stick Subinterface (S7)
 
-To align routing with our VLAN design, we created a **subinterface** for VLAN 10 and applied 802.1Q encapsulation.
+We aligned routing with the VLAN design by creating a subinterface.
 
 <img width="702" height="712" alt="S7" src="https://github.com/user-attachments/assets/33e33ee1-949d-4b00-9366-cffe12432720" />
 
-This assigned the correct gateway:
+### Commands Introduced Here
 
-- `Gig0/0/0.10 → 192.168.10.1`  
-- Tagged to VLAN 10  
-- Matched to the DHCP configuration  
+- **`interface gigabitEthernet0/0/0.<vlan>`**  
+  Creates a logical subinterface for a VLAN.  
+  Example: `interface g0/0/0.10`
 
-This was the turning point in fixing the mismatch causing the ping failure.
+- **`encapsulation dot1Q <vlan-id>`**  
+  Enables 802.1Q tagging on the subinterface.  
+  Example: `encapsulation dot1Q 10`
+
+- **`ip address <ip> <mask>`**  
+  Assigns the gateway for that VLAN.
+
+This corrected the addressing mismatch and completed the router side of the router-on-a-stick setup.
 
 ---
 
 ## 8. Updating the Switch Trunk Configuration (S8)
 
-Next, we returned to the switch to complete the uplink configuration so that VLAN-tagged frames could reach the router.
+Next, we configured the switch uplink so traffic could reach the subinterface.
 
 <img width="702" height="712" alt="S8" src="https://github.com/user-attachments/assets/24e459a1-c2cd-4fd8-b6a2-b97011a127a8" />
 
-We set `Fa0/1` to trunk mode and allowed VLANs 10 and 20.  
-This established full Layer 2 communication between the VLAN and the router subinterface.
+### Commands Introduced Here
+
+- **`switchport mode trunk`**  
+  Converts the interface to trunking mode.
+
+- **`switchport trunk allowed vlan <list>`**  
+  Specifies which VLANs are allowed on the trunk.
+
+Once the trunk matched the router subinterface, inter-VLAN communication became possible.
+
+---
 
 ## 9. Final PC Configuration Confirmation
 
@@ -162,13 +234,13 @@ This image shows the PC set explicitly to **DHCP**, which is required for it to 
 
 <img width="702" height="712" alt="S10" src="https://github.com/user-attachments/assets/363e828e-3060-42db-bb27-98185406943a" />
 
-> We had left the PC in static mode earlier in testing, this alone would have blocked DHCP. Ensuring it was set to DHCP was essential for final validation.
+> The PC was previously left in static mode during testing; this alone would have prevented DHCP from assigning an address. Changing it to DHCP ensured proper VLAN participation.
 
 ---
 
 ## 10. Successful Ping & DHCP Assignment
 
-With the gateway corrected and trunking finalized, the PC finally obtained a proper DHCP lease.
+With the gateway corrected and trunking finalized, the PC obtained a proper DHCP lease.
 
 <img width="702" height="712" alt="S9" src="https://github.com/user-attachments/assets/f81f64ea-c118-4300-9e59-35992b2d6003" />
 
@@ -176,7 +248,7 @@ With the gateway corrected and trunking finalized, the PC finally obtained a pro
 - Default Gateway: `192.168.10.1`  
 - DNS: `8.8.8.8`  
 
-A ping to `192.168.10.1` returned **100% success**, confirming the network was now fully functional.
+Ping to `192.168.10.1` was successful, confirming full network functionality.
 
 ---
 
@@ -184,4 +256,3 @@ A ping to `192.168.10.1` returned **100% success**, confirming the network was n
 
 This project demonstrated a complete workflow for building and validating a segmented network with VLANs, DHCP, and router-on-a-stick routing. Beyond applying commands, it walked through real troubleshooting steps: identifying addressing mismatches, correcting subinterfaces, enabling trunking, and validating end-to-end connectivity. The final working environment behaves exactly like a small enterprise network, with scalable VLAN architecture and centralized Layer 3 routing.
 
----

@@ -29,23 +29,23 @@ The environment contains:
 
 <img width="1920" height="1032" alt="S1" src="https://github.com/user-attachments/assets/3d50010f-e3a6-474e-99cf-e3b490624148" />
 
-> **Cabling Used:**  
-> - Router ↔ Switch → Straight-through (different device types)  
-> - Switch ↔ PC → Straight-through  
+**Cabling Used:**  
+- Router ↔ Switch → Straight-through (different device types)  
+- Switch ↔ PC → Straight-through  
 
 **VLAN / IP Design**
 
-| VLAN | Purpose    | Subnet           | Gateway         |
+| VLAN | Purpose     | Subnet           | Gateway         |
 |------|-------------|------------------|-----------------|
 | 10   | Marketing   | 192.168.10.0/24  | 192.168.10.1    |
 | 20   | HR          | (Reserved)       | (Planned)       |
 
 ---
 
-## 2. Router Initial Configuration (S2)
+## 2. Router Initial Configuration
 
 Upon opening the router, Packet Tracer displays the **System Configuration Dialog**.  
-We intentionally selected **“no”** so that we could build the configuration manually. This allows full granular control of every interface, service, and protocol — matching what real network engineers do.
+We intentionally selected **“no”** so that we could build the configuration manually. This allows full granular control of every interface, service, and protocol.
 
 <img width="702" height="712" alt="S2" src="https://github.com/user-attachments/assets/a272acdd-4ba3-4baa-9d69-837850ebb2d6" />
 
@@ -83,7 +83,7 @@ Although this activated the interface, the IP (`192.168.1.1`) did **not** match 
 
 ---
 
-## 3. DHCP Configuration (S3)
+## 3. DHCP Configuration
 
 With the router active, we configured DHCP exclusions and created a dedicated DHCP pool.
 
@@ -107,7 +107,7 @@ Inside the DHCP pool:
   Defines the subnet the pool will use.
 
 - **`default-router <ip>`**  
-  Sets the gateway handed out to clients — must match router-on-a-stick subinterface.
+  Sets the gateway handed out to clients; must match router-on-a-stick subinterface.
 
 - **`dns-server <ip>`**  
   Provides a DNS server address to DHCP clients.
@@ -121,7 +121,7 @@ After configuration we verified bindings using:
 
 ---
 
-## 4. VLAN Creation & Port Assignment (S4)
+## 4. VLAN Creation & Port Assignment
 
 Next, we configured the Layer 2 switch.
 
@@ -146,11 +146,11 @@ Inside the interface:
 - **`switchport access vlan <id>`**  
   Assigns the VLAN to the interface (untagged).
 
-At this point the VLANs were created and the PC was assigned to VLAN 10, but trunking and subinterfaces were not yet configured — so routing still could not occur.
+At this point the VLANs were created and the PC was assigned to VLAN 10, but trunking and subinterfaces were not yet configured, so routing still could not occur.
 
 ---
 
-## 5. L2 Verification (S5.1, S5.2, S5.3)
+## 5. L2 Verification
 
 Before testing connectivity, we verified Layer 2 status.
 
@@ -171,7 +171,7 @@ Before testing connectivity, we verified Layer 2 status.
 
 ---
 
-## 6. First Connectivity Test – Ping Failure (S6)
+## 6. First Connectivity Test - Ping Failure
 
 We attempted to ping the router.
 
@@ -187,7 +187,7 @@ This mismatch pointed directly to the missing router subinterface.
 
 ---
 
-## 7. Creating the Router-on-a-Stick Subinterface (S7)
+## 7. Creating the Router-on-a-Stick Subinterface
 
 We aligned routing with the VLAN design by creating a subinterface.
 
@@ -210,7 +210,7 @@ This corrected the addressing mismatch and completed the router side of the rout
 
 ---
 
-## 8. Updating the Switch Trunk Configuration (S8)
+## 8. Updating the Switch Trunk Configuration
 
 Next, we configured the switch uplink so traffic could reach the subinterface.
 
@@ -256,3 +256,4 @@ Ping to `192.168.10.1` was successful, confirming full network functionality.
 
 This project demonstrated a complete workflow for building and validating a segmented network with VLANs, DHCP, and router-on-a-stick routing. Beyond applying commands, it walked through real troubleshooting steps: identifying addressing mismatches, correcting subinterfaces, enabling trunking, and validating end-to-end connectivity. The final working environment behaves exactly like a small enterprise network, with scalable VLAN architecture and centralized Layer 3 routing.
 
+---

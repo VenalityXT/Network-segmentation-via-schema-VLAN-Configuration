@@ -14,7 +14,8 @@ Single-Router, Single-Switch, Single-PC Topology with DHCP & Router-on-a-Stick
 This lab walks through the complete configuration of a **routed VLAN access network** using Cisco Packet Tracer. A single router provides default-gateway and DHCP services for a Marketing VLAN, while a Layer 2 switch handles VLAN tagging and access/trunk ports, and a PC functions as a DHCP client in the segmented subnet. The goal is to demonstrate end-to-end understanding of VLAN creation, trunking, router-on-a-stick subinterfaces, DHCP scopes, and basic connectivity verification using ICMP.
 
 All configuration and troubleshooting steps are documented here so the lab can be reproduced from scratch or used as a study artifact. The corresponding Packet Tracer file is included in the repository for cloning or download:  
-** [`Network Segmentation & VLAN Configuration.pkt`](Network%20Segmentation%20%26%20VLAN%20Configuration.pkt)**
+
+**[Network Segmentation & VLAN Configuration.pkt](Network%20Segmentation%20%26%20VLAN%20Configuration.pkt)**
 
 ---
 

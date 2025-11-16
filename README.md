@@ -13,7 +13,7 @@ Router-on-a-Stick • DHCP • VLANs • Cisco Packet Tracer
 
 This project demonstrates how to configure a segmented Layer 2 network with DHCP, VLANs, trunking, and router-on-a-stick using Cisco Packet Tracer. A single router provides Layer 3 services for the Marketing VLAN, while a Layer 2 switch handles VLAN membership and 802.1Q trunking. The PC in VLAN 10 receives its network configuration dynamically via a DHCP pool hosted on the router.
 
-The goal is not only to show the final working configuration, but also to walk through the real troubleshooting steps and decisions made along the way—mirroring how network engineers diagnose and fix issues in live environments. You can download and explore the completed Packet Tracer file below:
+The goal is not only to show the final working configuration, but also to walk through the real troubleshooting steps and decisions made along the way; mirroring how network engineers diagnose and fix issues in live environments. You can download and explore the completed Packet Tracer file below:
 
 **[Network Segmentation & VLAN Configuration](Network%20Segmentation%20%26%20VLAN%20Configuration.pkt)**
 
@@ -45,7 +45,7 @@ The environment contains:
 ## 2. Router Initial Configuration (S2)
 
 Upon opening the router, Packet Tracer displays the **System Configuration Dialog**.  
-We intentionally selected **“no”** so that we could build the configuration manually—mirroring industry-standard workflows.
+We intentionally selected **“no”** so that we could build the configuration manually; mirroring industry-standard workflows.
 
 <img width="702" height="712" alt="S2" src="https://github.com/user-attachments/assets/a272acdd-4ba3-4baa-9d69-837850ebb2d6" />
 
@@ -65,7 +65,7 @@ With the router online, we configured DHCP exclusions and created a dedicated po
 
 <img width="702" height="712" alt="S3" src="https://github.com/user-attachments/assets/bb0eca13-c95c-4a8b-92b4-7f913e978cfa" />
 
-We excluded `.1` (the gateway) and `.10` (reserved), defined the network, and then verified bindings. The first verification attempt failed because the command was run inside configuration mode—an IOS nuance that provided a helpful reminder:
+We excluded `.1` (the gateway) and `.10` (reserved), defined the network, and then verified bindings. The first verification attempt failed because the command was run inside configuration mode; an IOS nuance that provided a helpful reminder:
 
 > **Execution commands only run from privileged EXEC mode (`Router#`).**
 
